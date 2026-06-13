@@ -1,93 +1,175 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { ArrowDown, Download } from 'lucide-react';
+import { ArrowDown, Download, Play } from 'lucide-react';
 import ParticleBackground from './ParticleBackground';
+import { portfolioData } from '../portfolioData';
 
-export const Hero: React.FC = () => {
+interface HeroProps {
+  mode: 'game' | 'fullstack';
+  isMuted: boolean;
+}
+
+export const Hero: React.FC<HeroProps> = ({ mode, isMuted }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const tagRef = useRef<HTMLSpanElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
 
+  const data = portfolioData[mode];
+
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Reset initial state to avoid flash of unstyled content
+    // Reset initial state to prevent flash of content
     gsap.set([tagRef.current, titleRef.current, subtitleRef.current, ctaRef.current], {
       opacity: 0,
-      y: 30,
+      y: 20,
     });
 
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 1 } });
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 0.8 } });
     
     tl.to(tagRef.current, {
       opacity: 1,
       y: 0,
-      delay: 0.2,
+      delay: 0.1,
     })
     .to(titleRef.current, {
       opacity: 1,
       y: 0,
-    }, '-=0.6')
+    }, '-=0.5')
     .to(subtitleRef.current, {
       opacity: 1,
       y: 0,
-    }, '-=0.7')
+    }, '-=0.6')
     .to(ctaRef.current, {
       opacity: 1,
       y: 0,
-    }, '-=0.7');
+    }, '-=0.6');
 
-  }, []);
+  }, [mode]); // Re-animate smoothly on mode toggle
+
+  // Web Audio Synth Generator for Arcade SFX
+  const playSynthSound = (frequency: number, type: 'sine' | 'sawtooth' = 'sine') => {
+    if (isMuted) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      if (type === 'sine') {
+        // High pitch clean arcade blip
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+        gainNode.gain.setValueAtTime(0.08, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+      } else {
+        // Sawtooth sweep (sci-fi laser style)
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(frequency / 3, ctx.currentTime + 0.25);
+        gainNode.gain.setValueAtTime(0.05, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      }
+    } catch (err) {
+      // Browser autoplay policy might block audio context initialization until direct click
+    }
+  };
 
   const handleExploreClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
+    playSynthSound(500, 'sawtooth');
     const projectsSection = document.getElementById('projects');
     if (projectsSection) {
       projectsSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  const handleHoverBtn = () => {
+    playSynthSound(700, 'sine');
+  };
+
+  // Prepend base path from vite.config.ts base path setting (e.g. '/PortfolioMe/')
+  const cvDownloadUrl = `${import.meta.env.BASE_URL}Le-Quy-Toan-CV.pdf`;
+
+  const accentColor = mode === 'game' ? 'var(--accent-cyan)' : '#10b981';
+
   return (
     <section ref={containerRef} className="hero-section" style={heroStyles.section}>
-      <ParticleBackground />
+      <ParticleBackground mode={mode} />
       
-      {/* Decorative ambient lights */}
-      <div style={heroStyles.ambientCyan} />
+      {/* Dynamic ambient grid colors */}
+      <div style={{
+        ...heroStyles.ambientCyan,
+        background: `radial-gradient(circle, ${mode === 'game' ? 'rgba(0, 242, 254, 0.08)' : 'rgba(16, 185, 129, 0.08)'} 0%, rgba(0, 0, 0, 0) 70%)`
+      }} />
       <div style={heroStyles.ambientPurple} />
       
       <div className="container" style={heroStyles.contentContainer}>
         <div style={heroStyles.wrapper}>
-          <span ref={tagRef} style={heroStyles.tag}>
-            [ PORTFOLIO ECOSYSTEM ]
+          <span ref={tagRef} style={{ ...heroStyles.tag, color: accentColor, textShadow: `0 0 10px ${accentColor}4D` }}>
+            [ {mode === 'game' ? 'GAME DEV ENVIRONMENT' : 'FULL-STACK ENVIRONMENT'} ]
           </span>
           
           <h1 ref={titleRef} style={heroStyles.title}>
-            Hi, I'm <span style={heroStyles.highlight}>Le Quy Toan</span>
+            Hi, I'm <span style={{
+              ...heroStyles.highlight,
+              background: mode === 'game' 
+                ? 'linear-gradient(to right, var(--accent-cyan), #a15bf9)' 
+                : 'linear-gradient(to right, #10b981, var(--accent-cyan))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>Le Quy Toan</span>
             <br />
-            <span style={heroStyles.subHighlight}>Aspiring Game & Playable Ads Developer</span>
+            <span style={heroStyles.subHighlight}>{data.subTitle}</span>
           </h1>
           
           <p ref={subtitleRef} style={heroStyles.subtitle}>
-            Specialized in Unity game development, interactive playable ads, and high-performance graphic particle systems. Creating immersive, responsive, and pixel-perfect gaming experiences.
+            {data.objective}
           </p>
           
           <div ref={ctaRef} style={heroStyles.ctaGroup}>
-            <a href="#projects" onClick={handleExploreClick} className="btn-neon btn-neon-cyan">
+            <a 
+              href="#projects" 
+              onClick={handleExploreClick} 
+              onMouseEnter={handleHoverBtn}
+              className="btn-neon"
+              style={{
+                color: accentColor,
+                border: `2px solid ${accentColor}`,
+                boxShadow: `0 0 10px ${accentColor}1D`,
+              }}
+            >
               <ArrowDown size={18} />
               Explore Projects
             </a>
             
             <a 
-              href="/Le-Quy-Toan-CV.pdf" 
+              href={cvDownloadUrl}
               download="Le-Quy-Toan-CV.pdf" 
+              onMouseEnter={handleHoverBtn}
+              onClick={() => playSynthSound(800, 'sine')}
               className="btn-neon btn-neon-purple"
               style={heroStyles.downloadBtn}
             >
               <Download size={18} />
               Download CV
             </a>
+          </div>
+
+          <div style={heroStyles.arcadePrompt}>
+            <Play size={10} style={{ animation: 'pulse-opacity 1s infinite alternate', marginRight: '4px' }} />
+            <span>PRESS TABS TO EXPLORE SYSTEMS</span>
           </div>
         </div>
       </div>
@@ -122,9 +204,7 @@ const heroStyles: { [key: string]: React.CSSProperties } = {
     fontFamily: 'var(--font-mono)',
     fontSize: '0.85rem',
     letterSpacing: '0.3em',
-    color: 'var(--accent-cyan)',
     marginBottom: '1.5rem',
-    textShadow: '0 0 10px rgba(0, 242, 254, 0.3)',
     fontWeight: 'bold',
   },
   title: {
@@ -135,9 +215,6 @@ const heroStyles: { [key: string]: React.CSSProperties } = {
     letterSpacing: '-0.02em',
   },
   highlight: {
-    background: 'linear-gradient(to right, var(--accent-cyan), #a15bf9)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
     fontWeight: 800,
   },
   subHighlight: {
@@ -152,7 +229,7 @@ const heroStyles: { [key: string]: React.CSSProperties } = {
     color: 'var(--text-secondary)',
     lineHeight: '1.7',
     marginBottom: '2.5rem',
-    maxWidth: '700px',
+    maxWidth: '720px',
   },
   ctaGroup: {
     display: 'flex',
@@ -171,7 +248,6 @@ const heroStyles: { [key: string]: React.CSSProperties } = {
     height: '35vw',
     top: '10%',
     left: '10%',
-    background: 'radial-gradient(circle, rgba(0, 242, 254, 0.08) 0%, rgba(0, 0, 0, 0) 70%)',
     pointerEvents: 'none',
     zIndex: 1,
   },
@@ -185,6 +261,24 @@ const heroStyles: { [key: string]: React.CSSProperties } = {
     pointerEvents: 'none',
     zIndex: 1,
   },
+  arcadePrompt: {
+    display: 'flex',
+    alignItems: 'center',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.7rem',
+    color: 'var(--text-muted)',
+    marginTop: '3.5rem',
+    letterSpacing: '2px',
+  }
 };
+
+const pulseStyle = document.createElement('style');
+pulseStyle.innerHTML = `
+  @keyframes pulse-opacity {
+    from { opacity: 0.2; }
+    to { opacity: 1; }
+  }
+`;
+document.head.appendChild(pulseStyle);
 
 export default Hero;

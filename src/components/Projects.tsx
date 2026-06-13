@@ -1,9 +1,23 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ExternalLink } from 'lucide-react';
+import { Terminal } from 'lucide-react';
+import { portfolioData } from '../portfolioData';
+
+// Import assets
 import chickenInvadersImg from '../assets/chicken-invaders.png';
 import gameHubImg from '../assets/game-hub.png';
+import quizTriviaImg from '../assets/quiz-trivia.png';
+import loveflixImg from '../assets/loveflix.png';
+
+gsap.registerPlugin(ScrollTrigger);
+
+const imageMap = {
+  'chicken-invaders': chickenInvadersImg,
+  'game-hub': gameHubImg,
+  'quiz-trivia': quizTriviaImg,
+  'loveflix': loveflixImg,
+};
 
 const GithubIcon = ({ size = 20 }: { size?: number }) => (
   <svg 
@@ -20,96 +34,111 @@ const GithubIcon = ({ size = 20 }: { size?: number }) => (
   </svg>
 );
 
-gsap.registerPlugin(ScrollTrigger);
-
-interface Project {
-  id: number;
-  title: string;
-  role: string;
-  description: string;
-  techTags: string[];
-  image: string;
-  githubLink: string;
-  demoLink?: string;
+interface ProjectsProps {
+  mode: 'game' | 'fullstack';
 }
 
-const projectsData: Project[] = [
-  {
-    id: 1,
-    title: 'Chicken Invaders Remake',
-    role: 'Gameplay & Tool Developer',
-    description: 'A polished remake of the classic Chicken Invaders space shooter in Unity. Re-engineered core flight mechanics, a dynamic grid-based wave spawning system, custom editor scripts for quick wave configuration, and optimized object pooling.',
-    techTags: ['Unity Engine', 'C#', 'New Input System', 'Custom Editor Scripting', 'Coroutines'],
-    image: chickenInvadersImg,
-    githubLink: 'https://github.com/ToanLee5433',
-  },
-  {
-    id: 2,
-    title: 'Web Game Hub Portal',
-    role: 'Solo Web Developer',
-    description: 'A fully responsive web game hub hosting 6 games (Wood Block Puzzle, Snake Hunter, Tetris, Memory Game, Blackjack/Poker, and Caro/Gomoku with minimax AI opponents). Integrated HTML5 Canvas, high-performance animations, and local server features.',
-    techTags: ['HTML5 Canvas', 'Vanilla JS/TS', 'GSAP', 'Node.js', 'Socket.io'],
-    image: gameHubImg,
-    githubLink: 'https://github.com/ToanLee5433',
-  }
-];
-
-export const Projects: React.FC = () => {
+export const Projects: React.FC<ProjectsProps> = ({ mode }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
+  const hintRef = useRef<HTMLParagraphElement>(null);
+
+  const projects = portfolioData[mode].projects;
+  const accentColor = mode === 'game' ? 'var(--accent-cyan)' : '#10b981';
 
   useEffect(() => {
     if (!sectionRef.current || !cardsRef.current) return;
 
     const cards = cardsRef.current.children;
     
-    // Animation for cards staggering up on scroll
+    // Smooth scroll animations
     gsap.fromTo(
       cards,
-      { opacity: 0, y: 50 },
+      { opacity: 0, y: 40 },
       {
         opacity: 1,
         y: 0,
-        stagger: 0.25,
-        duration: 0.8,
+        stagger: 0.2,
+        duration: 0.7,
         ease: 'power2.out',
         scrollTrigger: {
           trigger: cardsRef.current,
-          start: 'top 80%',
+          start: 'top 85%',
           toggleActions: 'play none none reverse',
         }
       }
     );
-  }, []);
+
+    // Pulse navigation hint
+    if (hintRef.current) {
+      gsap.fromTo(
+        hintRef.current,
+        { opacity: 0.5 },
+        { opacity: 1, repeat: -1, yoyo: true, duration: 1.2 }
+      );
+    }
+  }, [mode]);
 
   return (
     <section id="projects" ref={sectionRef} style={styles.section}>
+      {/* Scanline CRT overlay */}
+      <div style={styles.scanline} />
+
       <div className="container">
         <div style={styles.header}>
-          <span style={styles.sectionLabel}>// DEV PORTFOLIO</span>
-          <h2 style={styles.sectionTitle}>Featured Games & Apps</h2>
-          <div style={styles.underline} />
+          <span style={{ ...styles.sectionLabel, color: mode === 'game' ? 'var(--accent-purple)' : '#10b981' }}>
+            // DEV LOGS & CODEFILES
+          </span>
+          <h2 style={styles.sectionTitle}>
+            {mode === 'game' ? 'Gameplay Prototypes' : 'Full-Stack Deployments'}
+          </h2>
+          <div style={{
+            ...styles.underline,
+            background: mode === 'game' 
+              ? 'linear-gradient(to right, var(--accent-cyan), var(--accent-purple))'
+              : 'linear-gradient(to right, #10b981, var(--accent-cyan))'
+          }} />
+          
+          <p ref={hintRef} style={{ ...styles.switcherHint, borderLeft: `3px solid ${accentColor}` }}>
+            💡 Nhấp vào nút gạt <b>[ {mode === 'game' ? 'GAME DEV' : 'FULL-STACK'} ]</b> ở đầu trang để khám phá các dự án khác của em!
+          </p>
         </div>
 
         <div ref={cardsRef} style={styles.grid}>
-          {projectsData.map((project) => (
-            <div key={project.id} className="glass-card" style={styles.card}>
+          {projects.map((project, index) => (
+            <div key={index} className="glass-card" style={styles.card}>
               <div style={styles.imageContainer}>
                 <img 
-                  src={project.image} 
+                  src={imageMap[project.imageName]} 
                   alt={project.title} 
                   style={styles.image}
                   className="project-thumbnail"
                 />
                 <div style={styles.overlay}>
-                  <span style={styles.roleTag}>{project.role}</span>
+                  <span style={{ ...styles.roleTag, borderColor: accentColor, color: accentColor }}>
+                    {project.role}
+                  </span>
                 </div>
               </div>
 
               <div style={styles.info}>
                 <h3 style={styles.projectTitle}>{project.title}</h3>
-                
                 <p style={styles.description}>{project.description}</p>
+                
+                {/* CV Responsibilities bullet points */}
+                <div style={styles.responsibilitiesBlock}>
+                  <p style={styles.respHeader}>
+                    <Terminal size={14} style={{ color: accentColor }} />
+                    <span>Key Implementations:</span>
+                  </p>
+                  <ul style={styles.respList}>
+                    {project.responsibilities.map((resp, rIdx) => (
+                      <li key={rIdx} style={styles.respItem}>
+                        {resp}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 
                 <div style={styles.tagGroup}>
                   {project.techTags.map((tag) => (
@@ -127,20 +156,9 @@ export const Projects: React.FC = () => {
                     style={styles.link}
                     title="View Source Code"
                   >
-                    <GithubIcon size={20} />
-                    <span>Repository</span>
+                    <GithubIcon size={18} />
+                    <span>View Repository</span>
                   </a>
-                  {project.demoLink && (
-                    <a 
-                      href={project.demoLink} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      style={styles.link}
-                    >
-                      <ExternalLink size={20} />
-                      <span>Live Demo</span>
-                    </a>
-                  )}
                 </div>
               </div>
             </div>
@@ -153,19 +171,31 @@ export const Projects: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   section: {
-    background: 'radial-gradient(100% 100% at bottom, rgba(138, 43, 226, 0.03) 0%, rgba(11, 15, 25, 0) 100%)',
+    background: 'radial-gradient(100% 100% at bottom, rgba(138, 43, 226, 0.02) 0%, rgba(11, 15, 25, 0) 100%)',
     borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
+    position: 'relative',
+  },
+  scanline: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))',
+    backgroundSize: '100% 4px, 6px 100%',
+    pointerEvents: 'none',
+    zIndex: 1,
+    opacity: 0.15,
   },
   header: {
     textAlign: 'center',
-    marginBottom: '4rem',
+    marginBottom: '3rem',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
   },
   sectionLabel: {
     fontFamily: 'var(--font-mono)',
-    color: 'var(--accent-purple)',
     fontSize: '0.85rem',
     letterSpacing: '0.2em',
     marginBottom: '0.5rem',
@@ -178,15 +208,26 @@ const styles: { [key: string]: React.CSSProperties } = {
   underline: {
     width: '50px',
     height: '3px',
-    background: 'linear-gradient(to right, var(--accent-cyan), var(--accent-purple))',
     marginTop: '1rem',
     borderRadius: '2px',
   },
+  switcherHint: {
+    marginTop: '2rem',
+    fontSize: '0.9rem',
+    color: 'var(--text-secondary)',
+    backgroundColor: 'rgba(21, 29, 48, 0.5)',
+    padding: '0.75rem 1.25rem',
+    borderRadius: '8px',
+    maxWidth: '650px',
+    textAlign: 'left',
+  },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-    gap: '2.5rem',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+    gap: '3rem',
     marginTop: '2rem',
+    position: 'relative',
+    zIndex: 2,
   },
   card: {
     display: 'flex',
@@ -194,11 +235,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     overflow: 'hidden',
     height: '100%',
     cursor: 'default',
+    background: 'rgba(21, 29, 48, 0.35)',
   },
   imageContainer: {
     position: 'relative',
     width: '100%',
-    height: '220px',
+    height: '240px',
     overflow: 'hidden',
     backgroundColor: '#070a11',
     borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
@@ -218,22 +260,21 @@ const styles: { [key: string]: React.CSSProperties } = {
   roleTag: {
     fontSize: '0.75rem',
     fontFamily: 'var(--font-mono)',
-    background: 'rgba(11, 15, 25, 0.85)',
-    border: '1px solid var(--accent-cyan)',
-    color: 'var(--accent-cyan)',
+    background: 'rgba(11, 15, 25, 0.9)',
+    border: '1px solid transparent',
     padding: '4px 10px',
     borderRadius: '4px',
-    fontWeight: 500,
+    fontWeight: 600,
     textTransform: 'uppercase',
   },
   info: {
-    padding: '1.5rem',
+    padding: '1.75rem',
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
   },
   projectTitle: {
-    fontSize: '1.35rem',
+    fontSize: '1.4rem',
     color: '#ffffff',
     marginBottom: '0.75rem',
     fontFamily: 'var(--font-mono)',
@@ -242,8 +283,38 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'var(--text-secondary)',
     fontSize: '0.95rem',
     lineHeight: '1.6',
-    marginBottom: '1.5rem',
+    marginBottom: '1.25rem',
+  },
+  responsibilitiesBlock: {
     flexGrow: 1,
+    marginBottom: '1.5rem',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    padding: '1rem',
+    borderRadius: '8px',
+    border: '1px solid rgba(255, 255, 255, 0.02)',
+  },
+  respHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.85rem',
+    color: '#ffffff',
+    marginBottom: '0.5rem',
+    fontWeight: 600,
+  },
+  respList: {
+    listStyleType: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  respItem: {
+    color: 'var(--text-secondary)',
+    fontSize: '0.82rem',
+    lineHeight: '1.4',
+    paddingLeft: '0.75rem',
+    position: 'relative',
   },
   tagGroup: {
     display: 'flex',
@@ -252,11 +323,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '1.5rem',
   },
   tag: {
-    fontSize: '0.75rem',
+    fontSize: '0.72rem',
     fontFamily: 'var(--font-mono)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
     color: 'var(--text-secondary)',
-    border: '1px solid rgba(255, 255, 255, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.05)',
     padding: '3px 8px',
     borderRadius: '4px',
   },
@@ -264,7 +335,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     gap: '1rem',
     borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-    paddingTop: '1rem',
+    paddingTop: '1.25rem',
   },
   link: {
     display: 'inline-flex',
@@ -278,16 +349,23 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-// CSS hover scale helper via global styles
-const styleElement = document.createElement('style');
-styleElement.innerHTML = `
+// CSS hover scale helper injection
+const projectGlobalStyle = document.createElement('style');
+projectGlobalStyle.innerHTML = `
   .glass-card:hover .project-thumbnail {
-    transform: scale(1.05);
+    transform: scale(1.03);
   }
   .glass-card .links a:hover {
     color: var(--accent-cyan) !important;
   }
+  .glass-card ul li::before {
+    content: "•";
+    color: var(--accent-cyan);
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
 `;
-document.head.appendChild(styleElement);
+document.head.appendChild(projectGlobalStyle);
 
 export default Projects;

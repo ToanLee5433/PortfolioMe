@@ -1,6 +1,7 @@
 {
   "name": "portfoliome",
   "private": true,
+  "homepage": "https://ToanLee5433.github.io/PortfolioMe",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

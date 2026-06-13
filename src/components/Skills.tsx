@@ -2,72 +2,60 @@ import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Award, Code2, Cpu, Wrench } from 'lucide-react';
+import { portfolioData } from '../portfolioData';
 
 gsap.registerPlugin(ScrollTrigger);
 
-interface SkillGroup {
-  category: string;
-  icon: React.ReactNode;
-  skills: string[];
+interface SkillsProps {
+  mode: 'game' | 'fullstack';
 }
 
-interface Certification {
-  title: string;
-  issuer: string;
-  date?: string;
-}
-
-const skillGroups: SkillGroup[] = [
-  {
-    category: 'Programming Languages',
-    icon: <Code2 size={22} className="text-glow-cyan" style={{ color: 'var(--accent-cyan)' }} />,
-    skills: ['C#', 'TypeScript', 'JavaScript', 'C++', 'HTML5 / CSS3', 'SQL', 'Python'],
-  },
-  {
-    category: 'Game Engines & Web Tech',
-    icon: <Cpu size={22} className="text-glow-purple" style={{ color: 'var(--accent-purple)' }} />,
-    skills: ['Unity Engine', 'Cocos Creator', 'WebGL / Canvas API', 'GSAP Animations', 'React', 'Node.js', 'Socket.io'],
-  },
-  {
-    category: 'Development Tools',
-    icon: <Wrench size={22} style={{ color: '#ff007f' }} />,
-    skills: ['Git / GitHub', 'Unity Custom Editors', 'Visual Studio', 'VS Code', 'Firebase', 'Vite', 'NPM'],
-  },
+const categoryIcons = [
+  <Code2 size={22} style={{ color: 'var(--accent-cyan)' }} />,
+  <Cpu size={22} style={{ color: 'var(--accent-purple)' }} />,
+  <Wrench size={22} style={{ color: '#ff007f' }} />,
 ];
 
-const certifications: Certification[] = [
+// Certifications are locked and visible in both modes
+const certifications = [
   {
-    title: 'Aptis ESOL B2',
-    issuer: 'British Council',
+    title: 'Aptis ESOL International Certificate (CEFR Level B2)',
+    issuer: 'British Council (2026-2028)',
+    points: '+100 EXP',
   },
   {
     title: 'JavaScript Algorithms and Data Structures',
-    issuer: 'freeCodeCamp',
+    issuer: 'freeCodeCamp (2025)',
+    points: '+80 EXP',
   },
   {
     title: 'Unity Essentials & Junior Programmer Foundations',
-    issuer: 'Unity Learn',
+    issuer: 'Unity Learn (2026)',
+    points: '+120 EXP',
   },
 ];
 
-export const Skills: React.FC = () => {
+export const Skills: React.FC<SkillsProps> = ({ mode }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
   const certRef = useRef<HTMLDivElement>(null);
 
+  const skillsData = portfolioData[mode].skills;
+  const accentColor = mode === 'game' ? 'var(--accent-cyan)' : '#10b981';
+
   useEffect(() => {
     if (!sectionRef.current) return;
 
-    // Animate skill categories
+    // Animate skill groups
     if (skillsRef.current) {
       gsap.fromTo(
         skillsRef.current.children,
-        { opacity: 0, y: 30 },
+        { opacity: 0, y: 20 },
         {
           opacity: 1,
           y: 0,
-          stagger: 0.15,
-          duration: 0.6,
+          stagger: 0.1,
+          duration: 0.5,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: skillsRef.current,
@@ -78,16 +66,16 @@ export const Skills: React.FC = () => {
       );
     }
 
-    // Animate certifications
+    // Animate achievements
     if (certRef.current) {
       gsap.fromTo(
         certRef.current.children,
-        { opacity: 0, x: -30 },
+        { opacity: 0, x: -20 },
         {
           opacity: 1,
           x: 0,
-          stagger: 0.15,
-          duration: 0.6,
+          stagger: 0.1,
+          duration: 0.5,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: certRef.current,
@@ -97,33 +85,52 @@ export const Skills: React.FC = () => {
         }
       );
     }
-  }, []);
+  }, [mode]);
 
   return (
     <section id="skills" ref={sectionRef} style={styles.section}>
       <div className="container">
         
-        {/* Decorative Grid Light */}
-        <div style={styles.ambientLight} />
+        {/* Ambient background light */}
+        <div style={{
+          ...styles.ambientLight,
+          background: `radial-gradient(circle, ${mode === 'game' ? 'rgba(138, 43, 226, 0.04)' : 'rgba(16, 185, 129, 0.04)'} 0%, rgba(0, 0, 0, 0) 70%)`
+        }} />
 
         <div style={styles.header}>
-          <span style={styles.sectionLabel}>// SYSTEM LOGS</span>
-          <h2 style={styles.sectionTitle}>Capabilities & Certifications</h2>
-          <div style={styles.underline} />
+          <span style={{ ...styles.sectionLabel, color: accentColor }}>// CAPABILITY MATRICES</span>
+          <h2 style={styles.sectionTitle}>Skills & Credentials</h2>
+          <div style={{
+            ...styles.underline,
+            background: mode === 'game'
+              ? 'linear-gradient(to right, var(--accent-purple), var(--accent-cyan))'
+              : 'linear-gradient(to right, #10b981, var(--accent-cyan))'
+          }} />
         </div>
 
         <div style={styles.grid}>
           {/* Skills Column */}
           <div ref={skillsRef} style={styles.skillsCol}>
-            {skillGroups.map((group, idx) => (
+            {skillsData.map((group, idx) => (
               <div key={idx} className="glass-card" style={styles.skillCard}>
                 <div style={styles.skillHeader}>
-                  {group.icon}
+                  {categoryIcons[idx % categoryIcons.length]}
                   <h3 style={styles.categoryTitle}>{group.category}</h3>
                 </div>
                 <div style={styles.tagGroup}>
                   {group.skills.map((skill) => (
-                    <span key={skill} style={styles.skillTag}>
+                    <span key={skill} className="skillTag" style={{
+                      backgroundColor: mode === 'game' ? 'rgba(0, 242, 254, 0.02)' : 'rgba(16, 185, 129, 0.02)',
+                      border: mode === 'game' ? '1px solid rgba(0, 242, 254, 0.08)' : '1px solid rgba(16, 185, 129, 0.08)',
+                      fontSize: '0.85rem',
+                      fontFamily: 'var(--font-sans)',
+                      color: 'var(--text-primary)',
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      fontWeight: 400,
+                      transition: 'all 0.3s ease',
+                      cursor: 'default',
+                    }}>
                       {skill}
                     </span>
                   ))}
@@ -132,21 +139,27 @@ export const Skills: React.FC = () => {
             ))}
           </div>
 
-          {/* Certifications Column */}
+          {/* Certifications Column (Achievements style) */}
           <div>
             <div className="glass-card" style={styles.certCard}>
               <div style={styles.skillHeader}>
-                <Award size={24} style={{ color: 'var(--accent-cyan)' }} />
-                <h3 style={styles.categoryTitle}>Credentials & Verification</h3>
+                <Award size={24} style={{ color: 'gold', filter: 'drop-shadow(0 0 5px rgba(255, 215, 0, 0.4))' }} />
+                <h3 style={styles.categoryTitle}>Achievements Unlocked</h3>
               </div>
               <p style={styles.certSubtitle}>
-                Verified certifications highlighting specialized training in game development, core programming algorithms, and communication.
+                Official credentials and professional certifications validating core developer competencies.
               </p>
+              
               <div ref={certRef} style={styles.certList}>
                 {certifications.map((cert, idx) => (
                   <div key={idx} style={styles.certItem}>
-                    <div style={styles.certBullet} />
-                    <div>
+                    {/* Retro medal badge */}
+                    <div style={styles.badgeContainer}>
+                      <span style={styles.badgeUnlocked}>[UNLOCKED]</span>
+                      <span style={styles.expTag}>{cert.points}</span>
+                    </div>
+                    
+                    <div style={styles.certMeta}>
                       <h4 style={styles.certTitle}>{cert.title}</h4>
                       <p style={styles.certIssuer}>{cert.issuer}</p>
                     </div>
@@ -176,7 +189,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     top: '30%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    background: 'radial-gradient(circle, rgba(138, 43, 226, 0.035) 0%, rgba(0, 0, 0, 0) 70%)',
     pointerEvents: 'none',
     zIndex: 0,
   },
@@ -189,7 +201,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   sectionLabel: {
     fontFamily: 'var(--font-mono)',
-    color: 'var(--accent-cyan)',
     fontSize: '0.85rem',
     letterSpacing: '0.2em',
     marginBottom: '0.5rem',
@@ -202,7 +213,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   underline: {
     width: '50px',
     height: '3px',
-    background: 'linear-gradient(to right, var(--accent-purple), var(--accent-cyan))',
     marginTop: '1rem',
     borderRadius: '2px',
   },
@@ -239,17 +249,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexWrap: 'wrap',
     gap: '0.65rem',
   },
-  skillTag: {
-    fontSize: '0.85rem',
-    fontFamily: 'var(--font-sans)',
-    backgroundColor: 'rgba(0, 242, 254, 0.03)',
-    color: 'var(--text-primary)',
-    border: '1px solid rgba(0, 242, 254, 0.1)',
-    padding: '5px 12px',
-    borderRadius: '6px',
-    fontWeight: 400,
-    transition: 'all 0.3s ease',
-  },
   certCard: {
     padding: '2rem',
     height: '100%',
@@ -264,45 +263,53 @@ const styles: { [key: string]: React.CSSProperties } = {
   certList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.5rem',
+    gap: '1.75rem',
   },
   certItem: {
     display: 'flex',
-    alignItems: 'flex-start',
-    gap: '1rem',
+    flexDirection: 'column',
+    gap: '0.5rem',
+    background: 'rgba(0, 0, 0, 0.2)',
+    padding: '1rem',
+    borderRadius: '8px',
+    border: '1px solid rgba(255, 255, 255, 0.02)',
   },
-  certBullet: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: 'var(--accent-cyan)',
-    boxShadow: '0 0 8px var(--accent-cyan)',
-    marginTop: '7px',
-    flexShrink: 0,
+  badgeContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+    paddingBottom: '0.35rem',
+  },
+  badgeUnlocked: {
+    fontSize: '0.7rem',
+    fontFamily: 'var(--font-mono)',
+    color: 'gold',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+    textShadow: '0 0 5px rgba(255, 215, 0, 0.4)',
+  },
+  expTag: {
+    fontSize: '0.7rem',
+    fontFamily: 'var(--font-mono)',
+    color: 'var(--accent-cyan)',
+    fontWeight: 'bold',
+  },
+  certMeta: {
+    paddingTop: '0.25rem',
   },
   certTitle: {
-    fontSize: '1rem',
+    fontSize: '0.95rem',
     color: '#ffffff',
     fontWeight: 650,
-    marginBottom: '0.25rem',
+    lineHeight: '1.4',
+    marginBottom: '0.2rem',
   },
   certIssuer: {
-    fontSize: '0.85rem',
-    color: 'var(--accent-cyan)',
-    fontFamily: 'var(--font-mono)',
+    fontSize: '0.82rem',
+    color: 'var(--text-secondary)',
+    fontFamily: 'var(--font-sans)',
   },
 };
-
-// CSS style helper for skills interaction
-const skillsStyle = document.createElement('style');
-skillsStyle.innerHTML = `
-  .glass-card .skillTag:hover {
-    border-color: var(--accent-cyan) !important;
-    background: rgba(0, 242, 254, 0.1) !important;
-    box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
-    transform: translateY(-2px);
-  }
-`;
-document.head.appendChild(skillsStyle);
 
 export default Skills;
