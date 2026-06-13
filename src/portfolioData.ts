@@ -8,9 +8,14 @@ export interface Project {
   responsibilities: string[];
 }
 
+export interface SkillItem {
+  name: string;
+  level: number; // 0 to 100 representing RPG EXP/level
+}
+
 export interface SkillCategory {
   category: string;
-  skills: string[];
+  skills: SkillItem[];
 }
 
 export interface PortfolioModeData {
@@ -28,15 +33,32 @@ export const portfolioData: { game: PortfolioModeData; fullstack: PortfolioModeD
     skills: [
       {
         category: 'Programming Languages',
-        skills: ['C#', 'TypeScript', 'JavaScript', 'HTML5 / CSS3', 'Python'],
+        skills: [
+          { name: 'C# (OOP)', level: 85 },
+          { name: 'TypeScript', level: 80 },
+          { name: 'JavaScript', level: 85 },
+          { name: 'HTML5 / CSS3', level: 90 },
+          { name: 'Python', level: 75 }
+        ],
       },
       {
         category: 'Game Engines & Libraries',
-        skills: ['Unity Engine', 'Cocos Creator (Basic/Self-study)', 'Phaser', 'Unity Luna (Concept)', 'Particle-based 3D Algorithms'],
+        skills: [
+          { name: 'Unity Engine', level: 80 },
+          { name: 'Cocos Creator', level: 70 },
+          { name: 'Phaser', level: 75 },
+          { name: 'Unity Luna', level: 60 },
+          { name: 'Particle Systems', level: 85 }
+        ],
       },
       {
         category: 'Tools & Platforms',
-        skills: ['Git / GitHub', 'Unity Custom Editors', 'Visual Studio', 'VS Code', 'Firebase'],
+        skills: [
+          { name: 'Git / GitHub', level: 85 },
+          { name: 'Unity Custom Editors', level: 75 },
+          { name: 'Visual Studio / Code', level: 90 },
+          { name: 'Firebase', level: 75 }
+        ],
       },
     ],
     projects: [
@@ -80,15 +102,33 @@ export const portfolioData: { game: PortfolioModeData; fullstack: PortfolioModeD
     skills: [
       {
         category: 'Frontend & Frameworks',
-        skills: ['TypeScript', 'JavaScript', 'React', 'Redux Toolkit', 'HTML5 / CSS3', 'Vite'],
+        skills: [
+          { name: 'React', level: 85 },
+          { name: 'Redux Toolkit', level: 80 },
+          { name: 'TypeScript', level: 80 },
+          { name: 'JavaScript (ES6+)', level: 85 },
+          { name: 'HTML5 / CSS3', level: 90 },
+          { name: 'Vite', level: 85 }
+        ],
       },
       {
         category: 'Databases & Cloud',
-        skills: ['SQL Server', 'MySQL', 'Firebase (Firestore/Auth/Hosting)', 'Supabase', 'MongoDB', 'Redis'],
+        skills: [
+          { name: 'Firebase (Auth/Hosting/Cloud)', level: 80 },
+          { name: 'Supabase', level: 75 },
+          { name: 'MySQL / SQL Server', level: 80 },
+          { name: 'MongoDB', level: 70 },
+          { name: 'Redis', level: 65 }
+        ],
       },
       {
         category: 'AI & Advanced Tech',
-        skills: ['Gemini API Integration', 'RAG Architecture', 'Particle-based 3D Algorithms', 'AI-Assisted Development Tools'],
+        skills: [
+          { name: 'Gemini API Integration', level: 80 },
+          { name: 'RAG Architecture', level: 75 },
+          { name: 'Particle-based 3D Algorithms', level: 85 },
+          { name: 'AI-Assisted Dev Tools', level: 90 }
+        ],
       },
     ],
     projects: [

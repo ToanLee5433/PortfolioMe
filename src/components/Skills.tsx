@@ -16,22 +16,25 @@ const categoryIcons = [
   <Wrench size={22} style={{ color: '#ff007f' }} />,
 ];
 
-// Certifications are locked and visible in both modes
+// Certifications permanently unlocked & visible in both profiles
 const certifications = [
   {
     title: 'Aptis ESOL International Certificate (CEFR Level B2)',
     issuer: 'British Council (2026-2028)',
     points: '+100 EXP',
+    rarity: 'EPIC',
   },
   {
     title: 'JavaScript Algorithms and Data Structures',
     issuer: 'freeCodeCamp (2025)',
     points: '+80 EXP',
+    rarity: 'RARE',
   },
   {
     title: 'Unity Essentials & Junior Programmer Foundations',
     issuer: 'Unity Learn (2026)',
     points: '+120 EXP',
+    rarity: 'LEGENDARY',
   },
 ];
 
@@ -46,7 +49,7 @@ export const Skills: React.FC<SkillsProps> = ({ mode }) => {
   useEffect(() => {
     if (!sectionRef.current) return;
 
-    // Animate skill groups
+    // Animate RPG Skill card entries
     if (skillsRef.current) {
       gsap.fromTo(
         skillsRef.current.children,
@@ -66,7 +69,7 @@ export const Skills: React.FC<SkillsProps> = ({ mode }) => {
       );
     }
 
-    // Animate achievements
+    // Animate achievements list
     if (certRef.current) {
       gsap.fromTo(
         certRef.current.children,
@@ -87,11 +90,18 @@ export const Skills: React.FC<SkillsProps> = ({ mode }) => {
     }
   }, [mode]);
 
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'LEGENDARY': return '#ff8000'; // Orange
+      case 'EPIC': return '#a335ee';      // Purple
+      default: return '#0070dd';          // Rare Blue
+    }
+  };
+
   return (
     <section id="skills" ref={sectionRef} style={styles.section}>
       <div className="container">
         
-        {/* Ambient background light */}
         <div style={{
           ...styles.ambientLight,
           background: `radial-gradient(circle, ${mode === 'game' ? 'rgba(138, 43, 226, 0.04)' : 'rgba(16, 185, 129, 0.04)'} 0%, rgba(0, 0, 0, 0) 70%)`
@@ -109,7 +119,7 @@ export const Skills: React.FC<SkillsProps> = ({ mode }) => {
         </div>
 
         <div style={styles.grid}>
-          {/* Skills Column */}
+          {/* RPG Character Stat Sheets Column */}
           <div ref={skillsRef} style={styles.skillsCol}>
             {skillsData.map((group, idx) => (
               <div key={idx} className="glass-card" style={styles.skillCard}>
@@ -117,29 +127,32 @@ export const Skills: React.FC<SkillsProps> = ({ mode }) => {
                   {categoryIcons[idx % categoryIcons.length]}
                   <h3 style={styles.categoryTitle}>{group.category}</h3>
                 </div>
-                <div style={styles.tagGroup}>
-                  {group.skills.map((skill) => (
-                    <span key={skill} className="skillTag" style={{
-                      backgroundColor: mode === 'game' ? 'rgba(0, 242, 254, 0.02)' : 'rgba(16, 185, 129, 0.02)',
-                      border: mode === 'game' ? '1px solid rgba(0, 242, 254, 0.08)' : '1px solid rgba(16, 185, 129, 0.08)',
-                      fontSize: '0.85rem',
-                      fontFamily: 'var(--font-sans)',
-                      color: 'var(--text-primary)',
-                      padding: '5px 12px',
-                      borderRadius: '6px',
-                      fontWeight: 400,
-                      transition: 'all 0.3s ease',
-                      cursor: 'default',
-                    }}>
-                      {skill}
-                    </span>
+                
+                <div style={styles.statsList}>
+                  {group.skills.map((skill, sIdx) => (
+                    <div key={sIdx} style={styles.statRow}>
+                      <div style={styles.statMeta}>
+                        <span style={styles.statName}>{skill.name}</span>
+                        <span style={{ ...styles.statLevel, color: accentColor }}>LV.{skill.level}</span>
+                      </div>
+                      
+                      {/* Custom RPG Progress Bar */}
+                      <div style={styles.barContainer}>
+                        <div style={{
+                          ...styles.barFill,
+                          width: `${skill.level}%`,
+                          backgroundColor: accentColor,
+                          boxShadow: `0 0 8px ${accentColor}`,
+                        }} />
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Certifications Column (Achievements style) */}
+          {/* Certifications (Gaming Unlocked Achievements) Column */}
           <div>
             <div className="glass-card" style={styles.certCard}>
               <div style={styles.skillHeader}>
@@ -151,20 +164,24 @@ export const Skills: React.FC<SkillsProps> = ({ mode }) => {
               </p>
               
               <div ref={certRef} style={styles.certList}>
-                {certifications.map((cert, idx) => (
-                  <div key={idx} style={styles.certItem}>
-                    {/* Retro medal badge */}
-                    <div style={styles.badgeContainer}>
-                      <span style={styles.badgeUnlocked}>[UNLOCKED]</span>
-                      <span style={styles.expTag}>{cert.points}</span>
+                {certifications.map((cert, idx) => {
+                  const rarityColor = getRarityColor(cert.rarity);
+                  return (
+                    <div key={idx} style={styles.certItem}>
+                      <div style={styles.badgeContainer}>
+                        <span style={{ ...styles.badgeUnlocked, color: rarityColor, textShadow: `0 0 5px ${rarityColor}40` }}>
+                          🏆 [{cert.rarity}] UNLOCKED
+                        </span>
+                        <span style={styles.expTag}>{cert.points}</span>
+                      </div>
+                      
+                      <div style={styles.certMeta}>
+                        <h4 style={styles.certTitle}>{cert.title}</h4>
+                        <p style={styles.certIssuer}>{cert.issuer}</p>
+                      </div>
                     </div>
-                    
-                    <div style={styles.certMeta}>
-                      <h4 style={styles.certTitle}>{cert.title}</h4>
-                      <p style={styles.certIssuer}>{cert.issuer}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -229,14 +246,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '1.5rem',
   },
   skillCard: {
-    padding: '1.5rem',
+    padding: '1.75rem',
     background: 'rgba(21, 29, 48, 0.45)',
   },
   skillHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.75rem',
-    marginBottom: '1.25rem',
+    marginBottom: '1.5rem',
   },
   categoryTitle: {
     fontSize: '1.15rem',
@@ -244,10 +261,42 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     fontFamily: 'var(--font-mono)',
   },
-  tagGroup: {
+  statsList: {
     display: 'flex',
-    flexWrap: 'wrap',
-    gap: '0.65rem',
+    flexDirection: 'column',
+    gap: '1.15rem',
+  },
+  statRow: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  statMeta: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '0.9rem',
+    fontFamily: 'var(--font-sans)',
+  },
+  statName: {
+    color: '#ffffff',
+    fontWeight: 500,
+  },
+  statLevel: {
+    fontFamily: 'var(--font-mono)',
+    fontWeight: 'bold',
+  },
+  barContainer: {
+    width: '100%',
+    height: '8px',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: '4px',
+    overflow: 'hidden',
+    border: '1px solid rgba(255, 255, 255, 0.04)',
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: '4px',
+    transition: 'width 1s cubic-bezier(0.19, 1, 0.22, 1)',
   },
   certCard: {
     padding: '2rem',
@@ -263,16 +312,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   certList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.75rem',
+    gap: '1.5rem',
   },
   certItem: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem',
-    background: 'rgba(0, 0, 0, 0.2)',
+    background: 'rgba(0, 0, 0, 0.25)',
     padding: '1rem',
     borderRadius: '8px',
     border: '1px solid rgba(255, 255, 255, 0.02)',
+    transition: 'all 0.3s ease',
   },
   badgeContainer: {
     display: 'flex',
@@ -282,12 +332,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     paddingBottom: '0.35rem',
   },
   badgeUnlocked: {
-    fontSize: '0.7rem',
+    fontSize: '0.72rem',
     fontFamily: 'var(--font-mono)',
-    color: 'gold',
     fontWeight: 'bold',
     letterSpacing: '1px',
-    textShadow: '0 0 5px rgba(255, 215, 0, 0.4)',
   },
   expTag: {
     fontSize: '0.7rem',
@@ -311,5 +359,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: 'var(--font-sans)',
   },
 };
+
+// CSS style helper for achievement rotating effect on hover
+const skillsStyle = document.createElement('style');
+skillsStyle.innerHTML = `
+  .glass-card div div:hover {
+    transform: translateY(-2px) scale(1.01);
+    border-color: rgba(255, 215, 0, 0.15) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+`;
+document.head.appendChild(skillsStyle);
 
 export default Skills;

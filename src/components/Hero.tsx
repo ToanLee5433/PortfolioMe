@@ -21,7 +21,7 @@ export const Hero: React.FC<HeroProps> = ({ mode, isMuted }) => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Reset initial state to prevent flash of content
+    // Reset styles to prevent flash
     gsap.set([tagRef.current, titleRef.current, subtitleRef.current, ctaRef.current], {
       opacity: 0,
       y: 20,
@@ -32,7 +32,7 @@ export const Hero: React.FC<HeroProps> = ({ mode, isMuted }) => {
     tl.to(tagRef.current, {
       opacity: 1,
       y: 0,
-      delay: 0.1,
+      delay: 0.15,
     })
     .to(titleRef.current, {
       opacity: 1,
@@ -47,68 +47,100 @@ export const Hero: React.FC<HeroProps> = ({ mode, isMuted }) => {
       y: 0,
     }, '-=0.6');
 
-  }, [mode]); // Re-animate smoothly on mode toggle
+  }, [mode]);
 
-  // Web Audio Synth Generator for Arcade SFX
-  const playSynthSound = (frequency: number, type: 'sine' | 'sawtooth' = 'sine') => {
+  // Audio Synthesizers using browser Web Audio APIs
+  const playHoverTick = () => {
+    if (isMuted) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      // Extremely quick high frequency tick
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, ctx.currentTime);
+      gainNode.gain.setValueAtTime(0.04, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch (e) {}
+  };
+
+  const playExploreLaser = () => {
+    if (isMuted) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      // Sweeping frequency retro shoot laser sfx
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(500, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.22);
+      
+      gainNode.gain.setValueAtTime(0.06, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.25);
+    } catch (e) {}
+  };
+
+  const playPowerUpSound = () => {
     if (isMuted) return;
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
       
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      
-      if (type === 'sine') {
-        // High pitch clean arcade blip
+      // Triumphant 5-note arpeggio chord (C major ascending triad: C4-E4-G4-C5-E5)
+      const freqs = [261.63, 329.63, 392.00, 523.25, 659.25];
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-        gainNode.gain.setValueAtTime(0.08, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.15);
-      } else {
-        // Sawtooth sweep (sci-fi laser style)
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(frequency / 3, ctx.currentTime + 0.25);
-        gainNode.gain.setValueAtTime(0.05, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.25);
-      }
-    } catch (err) {
-      // Browser autoplay policy might block audio context initialization until direct click
-    }
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.07);
+        
+        gainNode.gain.setValueAtTime(0, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.05, ctx.currentTime + idx * 0.07 + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.07 + 0.2);
+        
+        osc.start(ctx.currentTime + idx * 0.07);
+        osc.stop(ctx.currentTime + idx * 0.07 + 0.2);
+      });
+    } catch (e) {}
   };
 
   const handleExploreClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    playSynthSound(500, 'sawtooth');
+    playExploreLaser();
     const projectsSection = document.getElementById('projects');
     if (projectsSection) {
       projectsSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const handleHoverBtn = () => {
-    playSynthSound(700, 'sine');
-  };
-
-  // Prepend base path from vite.config.ts base path setting (e.g. '/PortfolioMe/')
   const cvDownloadUrl = `${import.meta.env.BASE_URL}Le-Quy-Toan-CV.pdf`;
-
   const accentColor = mode === 'game' ? 'var(--accent-cyan)' : '#10b981';
 
   return (
     <section ref={containerRef} className="hero-section" style={heroStyles.section}>
       <ParticleBackground mode={mode} />
       
-      {/* Dynamic ambient grid colors */}
+      {/* Decorative ambient lighting grid */}
       <div style={{
         ...heroStyles.ambientCyan,
         background: `radial-gradient(circle, ${mode === 'game' ? 'rgba(0, 242, 254, 0.08)' : 'rgba(16, 185, 129, 0.08)'} 0%, rgba(0, 0, 0, 0) 70%)`
@@ -142,7 +174,7 @@ export const Hero: React.FC<HeroProps> = ({ mode, isMuted }) => {
             <a 
               href="#projects" 
               onClick={handleExploreClick} 
-              onMouseEnter={handleHoverBtn}
+              onMouseEnter={playHoverTick}
               className="btn-neon"
               style={{
                 color: accentColor,
@@ -157,8 +189,8 @@ export const Hero: React.FC<HeroProps> = ({ mode, isMuted }) => {
             <a 
               href={cvDownloadUrl}
               download="Le-Quy-Toan-CV.pdf" 
-              onMouseEnter={handleHoverBtn}
-              onClick={() => playSynthSound(800, 'sine')}
+              onMouseEnter={playHoverTick}
+              onClick={playPowerUpSound}
               className="btn-neon btn-neon-purple"
               style={heroStyles.downloadBtn}
             >
@@ -271,14 +303,5 @@ const heroStyles: { [key: string]: React.CSSProperties } = {
     letterSpacing: '2px',
   }
 };
-
-const pulseStyle = document.createElement('style');
-pulseStyle.innerHTML = `
-  @keyframes pulse-opacity {
-    from { opacity: 0.2; }
-    to { opacity: 1; }
-  }
-`;
-document.head.appendChild(pulseStyle);
 
 export default Hero;

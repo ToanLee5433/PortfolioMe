@@ -51,7 +51,6 @@ export const Projects: React.FC<ProjectsProps> = ({ mode }) => {
 
     const cards = cardsRef.current.children;
     
-    // Smooth scroll animations
     gsap.fromTo(
       cards,
       { opacity: 0, y: 40 },
@@ -69,7 +68,6 @@ export const Projects: React.FC<ProjectsProps> = ({ mode }) => {
       }
     );
 
-    // Pulse navigation hint
     if (hintRef.current) {
       gsap.fromTo(
         hintRef.current,
@@ -79,9 +77,21 @@ export const Projects: React.FC<ProjectsProps> = ({ mode }) => {
     }
   }, [mode]);
 
+  // Dynamic status tags above each card
+  const getCardArcadeHeader = (pIdx: number) => {
+    if (mode === 'game') {
+      return pIdx === 0 
+        ? { left: 'UNIT_STATUS: ACTIVE', right: 'CORE: 60FPS_LOCKED' }
+        : { left: 'SYSTEM_PORTAL: ONLINE', right: 'CONNECTION: SOCKET_ACTIVE' };
+    } else {
+      return pIdx === 0
+        ? { left: 'MODULE: QUIZ_SYSTEM', right: 'DB_SYNC: ACTIVE' }
+        : { left: 'MODULE: INTERACTIVE_3D', right: 'RENDER: CANVAS_PARTICLE' };
+    }
+  };
+
   return (
     <section id="projects" ref={sectionRef} style={styles.section}>
-      {/* Scanline CRT overlay */}
       <div style={styles.scanline} />
 
       <div className="container">
@@ -105,64 +115,73 @@ export const Projects: React.FC<ProjectsProps> = ({ mode }) => {
         </div>
 
         <div ref={cardsRef} style={styles.grid}>
-          {projects.map((project, index) => (
-            <div key={index} className="glass-card" style={styles.card}>
-              <div style={styles.imageContainer}>
-                <img 
-                  src={imageMap[project.imageName]} 
-                  alt={project.title} 
-                  style={styles.image}
-                  className="project-thumbnail"
-                />
-                <div style={styles.overlay}>
-                  <span style={{ ...styles.roleTag, borderColor: accentColor, color: accentColor }}>
-                    {project.role}
-                  </span>
+          {projects.map((project, index) => {
+            const arcadeHeader = getCardArcadeHeader(index);
+            return (
+              <div key={index} className="glass-card" style={styles.card}>
+                
+                {/* Arcade Cabinet Status Header */}
+                <div style={{ ...styles.arcadeHeader, borderBottom: `1px solid ${accentColor}33`, color: accentColor }}>
+                  <span>{arcadeHeader.left}</span>
+                  <span>{arcadeHeader.right}</span>
                 </div>
-              </div>
 
-              <div style={styles.info}>
-                <h3 style={styles.projectTitle}>{project.title}</h3>
-                <p style={styles.description}>{project.description}</p>
-                
-                {/* CV Responsibilities bullet points */}
-                <div style={styles.responsibilitiesBlock}>
-                  <p style={styles.respHeader}>
-                    <Terminal size={14} style={{ color: accentColor }} />
-                    <span>Key Implementations:</span>
-                  </p>
-                  <ul style={styles.respList}>
-                    {project.responsibilities.map((resp, rIdx) => (
-                      <li key={rIdx} style={styles.respItem}>
-                        {resp}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div style={styles.tagGroup}>
-                  {project.techTags.map((tag) => (
-                    <span key={tag} style={styles.tag}>
-                      {tag}
+                <div style={styles.imageContainer}>
+                  <img 
+                    src={imageMap[project.imageName]} 
+                    alt={project.title} 
+                    style={styles.image}
+                    className="project-thumbnail"
+                  />
+                  <div style={styles.overlay}>
+                    <span style={{ ...styles.roleTag, borderColor: accentColor, color: accentColor }}>
+                      {project.role}
                     </span>
-                  ))}
+                  </div>
                 </div>
 
-                <div style={styles.links}>
-                  <a 
-                    href={project.githubLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={styles.link}
-                    title="View Source Code"
-                  >
-                    <GithubIcon size={18} />
-                    <span>View Repository</span>
-                  </a>
+                <div style={styles.info}>
+                  <h3 style={styles.projectTitle}>{project.title}</h3>
+                  <p style={styles.description}>{project.description}</p>
+                  
+                  <div style={styles.responsibilitiesBlock}>
+                    <p style={styles.respHeader}>
+                      <Terminal size={14} style={{ color: accentColor }} />
+                      <span>Key Implementations:</span>
+                    </p>
+                    <ul style={styles.respList}>
+                      {project.responsibilities.map((resp, rIdx) => (
+                        <li key={rIdx} style={styles.respItem}>
+                          {resp}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div style={styles.tagGroup}>
+                    {project.techTags.map((tag) => (
+                      <span key={tag} style={styles.tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div style={styles.links}>
+                    <a 
+                      href={project.githubLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={styles.link}
+                      title="View Source Code"
+                    >
+                      <GithubIcon size={18} />
+                      <span>&gt; REPOSITORY</span>
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -236,6 +255,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '100%',
     cursor: 'default',
     background: 'rgba(21, 29, 48, 0.35)',
+  },
+  arcadeHeader: {
+    padding: '8px 16px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.72rem',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
   },
   imageContainer: {
     position: 'relative',
@@ -348,24 +377,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'color 0.2s ease',
   },
 };
-
-// CSS hover scale helper injection
-const projectGlobalStyle = document.createElement('style');
-projectGlobalStyle.innerHTML = `
-  .glass-card:hover .project-thumbnail {
-    transform: scale(1.03);
-  }
-  .glass-card .links a:hover {
-    color: var(--accent-cyan) !important;
-  }
-  .glass-card ul li::before {
-    content: "•";
-    color: var(--accent-cyan);
-    position: absolute;
-    left: 0;
-    top: 0;
-  }
-`;
-document.head.appendChild(projectGlobalStyle);
 
 export default Projects;
